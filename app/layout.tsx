@@ -6,6 +6,9 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
+  verification: {
+    google: "FMP5UN-sVu7_MGtUk-D-dnvc3sAQXhzy-E6Q2pGdm30",
+  },
   title: {
     default: "Pakistan Job Hub — Government Jobs Pakistan | Verified Info",
     template: "%s | Pakistan Job Hub",
