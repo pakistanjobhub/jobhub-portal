@@ -16,6 +16,7 @@ export default function Footer() {
           <h3 className="font-bold text-slate-800 dark:text-slate-100">Links</h3>
           <ul className="mt-2 space-y-1 text-sm">
             <li><Link href="/jobs">All Jobs</Link></li>
+            <li><Link href="/scholarships">Scholarships</Link></li>
             <li><Link href="/about">About</Link></li>
             <li><Link href="/faq">FAQ</Link></li>
             <li><Link href="/contact">Contact</Link></li>
@@ -31,7 +32,7 @@ export default function Footer() {
         </nav>
       </div>
       <div className="border-t border-slate-100 px-4 py-4 text-center text-xs text-slate-500 dark:border-slate-700 dark:text-slate-400">
-        Pakistan Job Hub • Verified info Only: We do not hire or charge fees.
+        Pakistan Job Hub • Verified Info Only: We do not hire or charge fees.
         <br />
         Jobs akhbar ke ishtihar aur official portals se li gayi hain. Apply karne se pehle official ad
         zaroor parhein.
