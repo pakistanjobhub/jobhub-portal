@@ -14,21 +14,21 @@ export const metadata: Metadata = {
     template: "%s | Pakistan Job Hub",
   },
   description:
-    "Pure Pakistan ki verified government jobs. Bina fee, bina sifarish. Roz taaza jobs — akhbar ke ishtihar aur official portals se.",
+    "Poore Pakistan ki verified government jobs. Bina fee, bina sifarish. Roz taaza jobs — akhbar ke ishtihar aur official portals se.",
   alternates: { canonical: "/" },
   openGraph: {
     type: "website",
     siteName: "Pakistan Job Hub",
     title: "Pakistan Job Hub — Government Jobs Pakistan",
     description:
-      "Pure Pakistan ki verified government jobs. Bina fee, bina sifarish. Roz taaza jobs.",
+      "Poore Pakistan ki verified government jobs. Bina fee, bina sifarish. Roz taaza jobs.",
     url: "/",
   },
   twitter: {
     card: "summary_large_image",
     title: "Pakistan Job Hub — Government Jobs Pakistan",
     description:
-      "Pure Pakistan ki verified government jobs. Bina fee, bina sifarish. Roz taaza jobs.",
+      "Poore Pakistan ki verified government jobs. Bina fee, bina sifarish. Roz taaza jobs.",
   },
 };
 
