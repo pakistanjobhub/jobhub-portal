@@ -1,11 +1,12 @@
 import Link from "next/link";
+import PakistanFlag from "./PakistanFlag";
 
 export default function Footer() {
   return (
     <footer className="mt-12 border-t border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-900">
       <div className="mx-auto grid max-w-6xl gap-8 px-4 py-10 sm:grid-cols-3">
         <div>
-          <h2 className="text-lg font-extrabold text-brand-800 dark:text-white">🇵🇰 Pakistan Job Hub</h2>
+          <h2 className="flex items-center gap-2 text-lg font-extrabold text-brand-800 dark:text-white"><PakistanFlag /> Pakistan Job Hub</h2>
           <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">
             Pure Pakistan ki government jobs ki verified maloomat — akhbar ke ishtihar aur official
             portals se. Hum hire nahi karte aur koi fee nahi lete.
