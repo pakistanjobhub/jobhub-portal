@@ -64,3 +64,69 @@ export function slugify(text: string): string {
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-+|-+$/g, "");
 }
+
+/* ------------------------------------------------------------------ */
+/* Scholarships                                                        */
+/* ------------------------------------------------------------------ */
+
+export interface Scholarship {
+  id: string;
+  slug: string;
+  title: string;
+  provider: string;
+  country: string;
+  levels: string[]; // e.g. ["Bachelors", "Masters", "PhD"]
+  type: string; // e.g. "Fully funded", "Partially funded", "Need-based", "Merit-based"
+  field: string;
+  summary: string;
+  covers: string;
+  eligibility: string[];
+  documents: string[];
+  howToApply: string;
+  deadline: string | null; // display text exactly as announced, e.g. "15 Jan 2027"
+  deadlineISO: string | null; // parseable ISO date when known, else null
+  officialUrl: string;
+  officialName: string;
+  source: string;
+  isFeatured: boolean;
+  isActive: boolean;
+  updatedAt: string; // ISO date of last content update
+}
+
+export interface ScholarshipFilters {
+  q?: string;
+  country?: string;
+  level?: string;
+  type?: string;
+  sort?: "deadline" | "newest";
+  page?: number;
+  perPage?: number;
+}
+
+export const SCHOLARSHIP_LEVELS = ["Intermediate", "Bachelors", "Masters", "PhD", "Diploma"];
+
+export const SCHOLARSHIP_TYPES = [
+  "Fully funded",
+  "Partially funded",
+  "Merit-based",
+  "Need-based",
+];
+
+/** True when the scholarship has a known deadline that has passed. */
+export function isScholarshipExpired(s: Scholarship, now = new Date()): boolean {
+  if (!s.deadlineISO) return false;
+  const end = new Date(s.deadlineISO + "T23:59:59");
+  return end.getTime() < now.getTime();
+}
+
+/** True when the deadline is within the next `days` days (default 15). */
+export function isClosingSoon(s: Scholarship, days = 15, now = new Date()): boolean {
+  if (!s.deadlineISO || isScholarshipExpired(s, now)) return false;
+  const end = new Date(s.deadlineISO + "T23:59:59").getTime();
+  const diffDays = (end - now.getTime()) / (1000 * 60 * 60 * 24);
+  return diffDays >= 0 && diffDays <= days;
+}
+
+export function scholarshipSlugify(text: string): string {
+  return slugify(text);
+}
