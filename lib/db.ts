@@ -1,7 +1,8 @@
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { SEED_JOBS } from "./seed-jobs";
-import type { Job, JobAlert, JobFilters, JobType } from "./types";
-import { isExpired, slugify } from "./types";
+import { SEED_SCHOLARSHIPS } from "./seed-scholarships";
+import type { Job, JobAlert, JobFilters, JobType, Scholarship, ScholarshipFilters } from "./types";
+import { isClosingSoon, isExpired, isScholarshipExpired, slugify } from "./types";
 
 export const DATA_SOURCE = process.env.DATA_SOURCE === "supabase" ? "supabase" : "seed";
 export const SITE_URL =
@@ -354,4 +355,257 @@ export async function saveJobAlert(alert: JobAlert): Promise<{ stored: boolean }
     return { stored: true };
   }
   return { stored: false };
+}
+
+/* ------------------------------------------------------------------ */
+/* Scholarships                                                        */
+/* ------------------------------------------------------------------ */
+
+interface ScholarshipRow {
+  id: string;
+  slug: string;
+  title: string;
+  provider: string;
+  country: string;
+  levels: string[];
+  type: string;
+  field: string;
+  summary: string;
+  covers: string;
+  eligibility: string[];
+  documents: string[];
+  how_to_apply: string;
+  deadline: string | null;
+  deadline_iso: string | null;
+  official_url: string;
+  official_name: string;
+  source: string;
+  is_featured: boolean;
+  is_active: boolean;
+  updated_at: string;
+}
+
+function rowToScholarship(row: ScholarshipRow): Scholarship {
+  return {
+    id: row.id,
+    slug: row.slug,
+    title: row.title,
+    provider: row.provider,
+    country: row.country,
+    levels: row.levels ?? [],
+    type: row.type,
+    field: row.field,
+    summary: row.summary,
+    covers: row.covers,
+    eligibility: row.eligibility ?? [],
+    documents: row.documents ?? [],
+    howToApply: row.how_to_apply,
+    deadline: row.deadline,
+    deadlineISO: row.deadline_iso,
+    officialUrl: row.official_url,
+    officialName: row.official_name,
+    source: row.source,
+    isFeatured: row.is_featured,
+    isActive: row.is_active,
+    updatedAt: row.updated_at,
+  };
+}
+
+function scholarshipToRow(
+  s: Partial<Scholarship> & { slug: string },
+): Record<string, unknown> {
+  const row: Record<string, unknown> = { slug: s.slug };
+  if (s.title !== undefined) row.title = s.title;
+  if (s.provider !== undefined) row.provider = s.provider;
+  if (s.country !== undefined) row.country = s.country;
+  if (s.levels !== undefined) row.levels = s.levels;
+  if (s.type !== undefined) row.type = s.type;
+  if (s.field !== undefined) row.field = s.field;
+  if (s.summary !== undefined) row.summary = s.summary;
+  if (s.covers !== undefined) row.covers = s.covers;
+  if (s.eligibility !== undefined) row.eligibility = s.eligibility;
+  if (s.documents !== undefined) row.documents = s.documents;
+  if (s.howToApply !== undefined) row.how_to_apply = s.howToApply;
+  if (s.deadline !== undefined) row.deadline = s.deadline;
+  if (s.deadlineISO !== undefined) row.deadline_iso = s.deadlineISO;
+  if (s.officialUrl !== undefined) row.official_url = s.officialUrl;
+  if (s.officialName !== undefined) row.official_name = s.officialName;
+  if (s.source !== undefined) row.source = s.source;
+  if (s.isFeatured !== undefined) row.is_featured = s.isFeatured;
+  if (s.isActive !== undefined) row.is_active = s.isActive;
+  if (s.updatedAt !== undefined) row.updated_at = s.updatedAt;
+  return row;
+}
+
+async function getSeedScholarships(): Promise<Scholarship[]> {
+  return [...SEED_SCHOLARSHIPS];
+}
+
+/** Active scholarships for main listings (excludes expired ones with known deadlines). */
+export async function getScholarships(): Promise<Scholarship[]> {
+  if (isSupabaseLive()) {
+    const client = getReadClient()!;
+    const { data, error } = await client
+      .from("scholarships")
+      .select("*")
+      .eq("is_active", true)
+      .order("updated_at", { ascending: false });
+    if (error) {
+      console.warn("Supabase getScholarships failed, falling back to seed:", error.message);
+      return (await getSeedScholarships()).filter((s) => s.isActive && !isScholarshipExpired(s));
+    }
+    return (data as ScholarshipRow[]).map(rowToScholarship).filter((s) => !isScholarshipExpired(s));
+  }
+  const all = await getSeedScholarships();
+  return all
+    .filter((s) => s.isActive && !isScholarshipExpired(s))
+    .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt));
+}
+
+/** All scholarships including inactive/expired (admin only). */
+export async function getAllScholarships(): Promise<Scholarship[]> {
+  if (isSupabaseLive()) {
+    const client = getWriteClient() ?? getReadClient()!;
+    const { data, error } = await client
+      .from("scholarships")
+      .select("*")
+      .order("updated_at", { ascending: false });
+    if (error) {
+      console.warn("Supabase getAllScholarships failed, falling back to seed:", error.message);
+      return getSeedScholarships();
+    }
+    return (data as ScholarshipRow[]).map(rowToScholarship);
+  }
+  return getSeedScholarships();
+}
+
+export async function getScholarshipBySlug(slug: string): Promise<Scholarship | null> {
+  if (isSupabaseLive()) {
+    const client = getReadClient()!;
+    const { data, error } = await client.from("scholarships").select("*").eq("slug", slug).maybeSingle();
+    if (error || !data) {
+      return (await getSeedScholarships()).find((s) => s.slug === slug) ?? null;
+    }
+    return rowToScholarship(data as ScholarshipRow);
+  }
+  return (await getSeedScholarships()).find((s) => s.slug === slug) ?? null;
+}
+
+function applyScholarshipFilters(list: Scholarship[], filters: ScholarshipFilters): Scholarship[] {
+  let out = [...list];
+  const q = filters.q?.trim().toLowerCase();
+  if (q) {
+    out = out.filter((s) =>
+      [s.title, s.provider, s.country, s.field, s.summary, s.type, ...s.levels]
+        .join(" ")
+        .toLowerCase()
+        .includes(q),
+    );
+  }
+  if (filters.country) out = out.filter((s) => s.country === filters.country);
+  if (filters.level) out = out.filter((s) => s.levels.includes(filters.level!));
+  if (filters.type) out = out.filter((s) => s.type === filters.type);
+  if (filters.sort === "deadline") {
+    out.sort((a, b) => (a.deadlineISO ?? "9999").localeCompare(b.deadlineISO ?? "9999"));
+  } else {
+    out.sort((a, b) => b.updatedAt.localeCompare(a.updatedAt));
+  }
+  return out;
+}
+
+export async function searchScholarships(
+  filters: ScholarshipFilters,
+): Promise<{ scholarships: Scholarship[]; total: number }> {
+  const all = await getScholarships();
+  const filtered = applyScholarshipFilters(all, filters);
+  const total = filtered.length;
+  const perPage = filters.perPage ?? 12;
+  const page = Math.max(1, filters.page ?? 1);
+  const start = (page - 1) * perPage;
+  return { scholarships: filtered.slice(start, start + perPage), total };
+}
+
+export async function getFeaturedScholarships(): Promise<Scholarship[]> {
+  const all = await getScholarships();
+  return all.filter((s) => s.isFeatured);
+}
+
+export async function getClosingSoonScholarships(days = 15): Promise<Scholarship[]> {
+  const all = await getScholarships();
+  return all.filter((s) => isClosingSoon(s, days));
+}
+
+export async function getRelatedScholarships(s: Scholarship, limit = 3): Promise<Scholarship[]> {
+  const all = await getScholarships();
+  const sameCountry = all.filter((x) => x.slug !== s.slug && x.country === s.country);
+  const sameLevel = all.filter(
+    (x) =>
+      x.slug !== s.slug &&
+      x.country !== s.country &&
+      x.levels.some((l) => s.levels.includes(l)),
+  );
+  return [...sameCountry, ...sameLevel].slice(0, limit);
+}
+
+export async function getScholarshipCountries(): Promise<string[]> {
+  const all = await getScholarships();
+  return [...new Set(all.map((s) => s.country))].sort();
+}
+
+export async function getScholarshipLevels(): Promise<string[]> {
+  const all = await getScholarships();
+  return [...new Set(all.flatMap((s) => s.levels))].sort();
+}
+
+export async function getScholarshipTypes(): Promise<string[]> {
+  const all = await getScholarships();
+  return [...new Set(all.map((s) => s.type))].sort();
+}
+
+export async function createScholarship(
+  input: Omit<Scholarship, "id" | "slug"> & { slug?: string },
+): Promise<Scholarship> {
+  const slug = (input.slug?.trim() || slugify(input.title)).replace(/^-+|-+$/g, "");
+  if (isSupabaseLive()) {
+    const client = getWriteClient();
+    if (!client) throw new Error("Supabase write client not configured.");
+    const { data, error } = await client
+      .from("scholarships")
+      .insert(scholarshipToRow({ ...input, slug }))
+      .select()
+      .single();
+    if (error) throw new Error(error.message);
+    return rowToScholarship(data as ScholarshipRow);
+  }
+  throw new Error("Scholarships seed mode is read-only on this deployment. Connect Supabase to add scholarships.");
+}
+
+export async function updateScholarship(
+  slug: string,
+  patch: Partial<Scholarship>,
+): Promise<Scholarship | null> {
+  if (isSupabaseLive()) {
+    const client = getWriteClient();
+    if (!client) throw new Error("Supabase write client not configured.");
+    const { data, error } = await client
+      .from("scholarships")
+      .update(scholarshipToRow({ slug, ...patch }))
+      .eq("slug", slug)
+      .select()
+      .maybeSingle();
+    if (error) throw new Error(error.message);
+    return data ? rowToScholarship(data as ScholarshipRow) : null;
+  }
+  throw new Error("Scholarships seed mode is read-only on this deployment. Connect Supabase to edit scholarships.");
+}
+
+export async function deleteScholarship(slug: string): Promise<boolean> {
+  if (isSupabaseLive()) {
+    const client = getWriteClient();
+    if (!client) throw new Error("Supabase write client not configured.");
+    const { error } = await client.from("scholarships").delete().eq("slug", slug);
+    if (error) throw new Error(error.message);
+    return true;
+  }
+  throw new Error("Scholarships seed mode is read-only on this deployment. Connect Supabase to delete scholarships.");
 }
