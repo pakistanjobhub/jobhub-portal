@@ -1,23 +1,38 @@
 import Link from "next/link";
 import JobCard from "@/components/JobCard";
+import ScholarshipCard from "@/components/ScholarshipCard";
 import JobAlertForm from "@/components/JobAlertForm";
-import { getCategories, getCities, getFeaturedJobs, getJobs, getStats } from "@/lib/db";
+import {
+  getCategories,
+  getCities,
+  getClosingSoonScholarships,
+  getFeaturedJobs,
+  getFeaturedScholarships,
+  getJobs,
+  getScholarships,
+  getStats,
+} from "@/lib/db";
 
 export const metadata = {
   title: "Pakistan Job Hub — Government Jobs Pakistan",
   description:
-    "Pure Pakistan ki verified government jobs. Bina fee, bina sifarish. Roz taaza jobs — akhbar ke ishtihar aur official portals se.",
+    "Poore Pakistan ki verified government jobs. Bina fee, bina sifarish. Roz taaza jobs — akhbar ke ishtihar aur official portals se.",
 };
 
 export default async function HomePage() {
-  const [jobs, featured, cities, categories, stats] = await Promise.all([
-    getJobs(),
-    getFeaturedJobs(),
-    getCities(),
-    getCategories(),
-    getStats(),
-  ]);
+  const [jobs, featured, cities, categories, stats, featuredSch, closingSoon, scholarships] =
+    await Promise.all([
+      getJobs(),
+      getFeaturedJobs(),
+      getCities(),
+      getCategories(),
+      getStats(),
+      getFeaturedScholarships(),
+      getClosingSoonScholarships(),
+      getScholarships(),
+    ]);
   const latest = jobs.slice(0, 6);
+  const latestSch = scholarships.slice(0, 4);
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-8">
@@ -25,7 +40,7 @@ export default async function HomePage() {
       <section className="rounded-2xl bg-gradient-to-br from-brand-800 to-brand-600 px-6 py-10 text-center text-white">
         <h1 className="text-3xl font-extrabold sm:text-4xl">Pakistan ki verified government jobs</h1>
         <p className="mx-auto mt-3 max-w-xl text-base opacity-95">
-          Pure Pakistan ki taaza government jobs — bina fee, bina sifarish. Search karein aur official
+          Poore Pakistan ki taaza government jobs — bina fee, bina sifarish. Search karein aur official
           tareeqe se apply karein.
         </p>
         <form
@@ -116,6 +131,55 @@ export default async function HomePage() {
           ))}
         </div>
       </section>
+
+      {/* Closing soon scholarships */}
+      {closingSoon.length > 0 && (
+        <section className="mt-10 rounded-xl border border-amber-200 bg-amber-50 p-5 dark:border-amber-900 dark:bg-amber-950">
+          <div className="flex items-baseline justify-between">
+            <h2 className="text-2xl font-extrabold text-amber-800 dark:text-amber-200">
+              ⏰ Closing soon — Scholarships
+            </h2>
+            <Link href="/scholarships" className="text-sm font-bold">Sab dekhein →</Link>
+          </div>
+          <div className="mt-4 grid gap-4 md:grid-cols-2">
+            {closingSoon.slice(0, 2).map((s) => (
+              <ScholarshipCard key={s.slug} scholarship={s} />
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* Featured scholarships */}
+      {featuredSch.length > 0 && (
+        <section className="mt-10">
+          <div className="flex items-baseline justify-between">
+            <h2 className="text-2xl font-extrabold text-slate-900 dark:text-white">
+              Featured scholarships
+            </h2>
+            <Link href="/scholarships" className="text-sm font-bold">Sab scholarships dekhein →</Link>
+          </div>
+          <div className="mt-4 grid gap-4 md:grid-cols-2">
+            {featuredSch.slice(0, 4).map((s) => (
+              <ScholarshipCard key={s.slug} scholarship={s} />
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* Latest scholarships */}
+      {latestSch.length > 0 && (
+        <section className="mt-10">
+          <div className="flex items-baseline justify-between">
+            <h2 className="text-2xl font-extrabold text-slate-900 dark:text-white">Latest scholarships</h2>
+            <Link href="/scholarships" className="text-sm font-bold">Sab dekhein →</Link>
+          </div>
+          <div className="mt-4 grid gap-4 md:grid-cols-2">
+            {latestSch.map((s) => (
+              <ScholarshipCard key={s.slug} scholarship={s} />
+            ))}
+          </div>
+        </section>
+      )}
 
       {/* Browse by city / category */}
       <section className="mt-10 grid gap-6 md:grid-cols-2">
