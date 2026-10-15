@@ -5,6 +5,7 @@ import PakistanFlag from "./PakistanFlag";
 const NAV = [
   { href: "/", label: "Home" },
   { href: "/jobs", label: "All Jobs" },
+  { href: "/scholarships", label: "Scholarships" },
   { href: "/about", label: "About" },
   { href: "/faq", label: "FAQ" },
   { href: "/contact", label: "Contact" },
@@ -31,7 +32,7 @@ export default function Header() {
         </nav>
       </div>
       <p className="border-t border-slate-100 bg-brand-50 px-4 py-1.5 text-center text-xs font-semibold text-brand-800 dark:border-slate-700 dark:bg-slate-800 dark:text-brand-100">
-        Verified info Only: We do not hire or charge fees.
+        Verified Info Only: We do not hire or charge fees.
       </p>
     </header>
   );
