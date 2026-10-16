@@ -17,6 +17,37 @@ import type { Job } from "./types";
  */
 export const SEED_JOBS: Job[] = [
   {
+    id: "seed-11",
+    slug: "assistant-manager-piahcl-islamabad-2026",
+    title: "Assistant Manager (Budgets / Retirement Benefits)",
+    org: "PIA Holding Company Limited (PIAHCL)",
+    city: "Islamabad",
+    province: "Islamabad",
+    category: "Administration",
+    jobType: "contract",
+    salary: null,
+    description: "PIA Holding Company Limited (PIAHCL) is hiring 02 Assistant Managers (Budgets / Retirement Benefits) at its Islamabad office. Performance-based fixed-term contract. Source: The News, 16 Oct 2026.",
+    responsibilities: [
+      "Manage government-allocated budgets and lead digital integration of retirement benefits operations",
+      "Pension & medical administration: maintain pensioner records, ensure uninterrupted medical facility for eligible pensioners",
+      "Systems integration: develop and maintain ERP/accounting software for large-scale data",
+      "Data management: analyze large datasets and interpret reports from integrated systems",
+    ],
+    requirements: [
+      "CA / CA Finalist / ACCA / CMA / CPA Finalist / MBA / MS in Finance, IT, Data Analytics, or BS Computer Science with Accounting & Finance exposure",
+      "Minimum 3 years relevant professional experience in accounting/finance or IT in a large corporate entity",
+      "Max age 30 years (+ 5-year general age relaxation in upper age limit)",
+    ],
+    benefits: [],
+    howToApply: "Download form from piahcl.com.pk/careers.html and email filled form with resume to careers@piahcl.com.pk within 15 days of publication (by 31 Oct 2026)",
+    postedDate: "2026-10-16",
+    lastDate: "31 Oct 2026",
+    lastDateISO: "2026-10-31",
+    source: "The News, 16 Oct 2026",
+    isFeatured: false,
+    isActive: true,
+  },
+  {
     id: "seed-1",
     slug: "finance-director-mti-mardan",
     title: "Finance Director",
